@@ -1,350 +1,146 @@
-Authentication System
+# Full-Stack Authentication System (React + Express + MySQL)
 
-A simple full-stack authentication system built with React.js, Express.js, MySQL, and Express Session.
+A complete guide and documentation for a Login / Authentication system built with **React (Vite)** on the frontend and **Node.js (Express) + MySQL** on the backend, featuring **Session Management (`express-session`)** and password hashing using **Bcrypt**.
 
-This project demonstrates user registration, login, password hashing, session-based authentication, and protected API requests between a React frontend and Express backend.
+## 📌 Features
 
-Tech Stack
+* **Authentication**: Login with Email and Password using `bcrypt` for password hashing and verification.
+* **Session Management**: Session-based state management using HTTP-only cookies (`withCredentials: true`).
+* **Protected Routes/APIs**: Restricted `/api/users` endpoint verifying session validity before serving data.
+* **CORS Configured**: Cross-Origin Resource Sharing set up to support credentials (cookies) between Frontend (`http://localhost:5173`) and Backend (`http://localhost:3000`).
 
-Frontend
+---
 
-* React.js
-* Axios
-* Vite
-* JavaScript
-* CSS
+## 🛠️ Tech Stack
 
-Backend
+### Frontend
+* **React.js** (Functional Components + Hooks)
+* **Axios**: HTTP client for API requests
+* **Tailwind CSS**: Utility-first CSS framework for UI styling
 
-* Node.js
-* Express.js
-* MySQL
-* bcrypt
-* express-session
-* CORS
+### Backend
+* **Node.js & Express.js**: REST API server
+* **MySQL**: Relational database
+* **express-session**: Session management middleware with HTTP-only cookies
+* **bcrypt**: Password hashing and verification library
+* **cors**: Middleware to enable CORS with credentials
 
-Project Structure
+---
 
-Authentication/
-├── frontend/
-│   ├── src/
-│   │   ├── components/
-│   │   ├── App.jsx
-│   │   └── main.jsx
-│   ├── package.json
-│   └── ...
-│
-└── backend/
-    ├── index.js
-    ├── package.json
-    └── ...
+## 🗄️ Database Structure
 
-Features
+Run the following SQL script to set up the database and required table:
 
-* User registration
-* Password hashing with bcrypt
-* User login
-* Session-based authentication
-* Protected API endpoint
-* MySQL database
-* CORS configuration
-* React + Axios API communication
-
-Authentication Flow
-
-React Frontend
-      │
-      │ POST /users/login
-      ▼
-Express Backend
-      │
-      │ Check email
-      │ Compare password with bcrypt
-      ▼
-MySQL Database
-      │
-      │ Login successful
-      ▼
-Express Session
-      │
-      │ Create session
-      ▼
-React Frontend
-      │
-      │ GET /api/users
-      │ withCredentials: true
-      ▼
-Protected API
-
-Database
-
-Create a MySQL database:
-
-CREATE DATABASE Authentication_learn;
-
-Create the users table:
+```sql
+CREATE DATABASE IF NOT EXISTS Authentication_learn;
 
 USE Authentication_learn;
-CREATE TABLE Authentication_learn (
+
+CREATE TABLE IF NOT EXISTS Authentication_learn (
     id INT AUTO_INCREMENT PRIMARY KEY,
     email VARCHAR(255) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL
+    password VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+```
 
-Passwords are stored as bcrypt hashes instead of plain text.
+---
 
-Backend Setup
+## 🚀 Setup & Installation
 
-Go to the backend folder:
+### 1. Backend Setup (Express)
 
-cd backend
+1. Initialize a Node.js project and install required dependencies:
+   ```bash
+   npm init -y
+   npm install express mysql bcrypt cors express-session
+   ```
+2. Configure database connection settings in your server file (`app.js` or `server.js`):
+   ```javascript
+   const connection = mysql.createConnection({
+       host: 'localhost',
+       user: 'root',      // Update with your MySQL user
+       password: '',      // Update with your MySQL password
+       database: 'Authentication_learn',
+   });
+   ```
+3. Start the backend server:
+   ```bash
+   node app.js
+   ```
+   *(Backend will run at `http://localhost:3000`)*
 
-Install dependencies:
+---
 
-npm install
+### 2. Frontend Setup (React)
 
-Required packages:
+1. Install required dependencies:
+   ```bash
+   npm install axios
+   ```
+2. Ensure **Tailwind CSS** is configured in your project.
+3. Start the Vite development server:
+   ```bash
+   npm run dev
+   ```
+   *(Frontend will run at `http://localhost:5173`)*
 
-npm install express mysql bcrypt cors express-session
+---
 
-Start the backend:
+## 📡 API Endpoints Summary
 
-node index.js
+| Method | Endpoint | Protection | Description |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/` | ❌ No | Server health check (`Hello World!`) |
+| `GET` | `/users` | ❌ No | Fetches all registered users |
+| `POST` | `/users/register` | ❌ No | Registers a new user (hashes password before insert) |
+| `POST` | `/users/login` | ❌ No | Authenticates user and initiates session cookie |
+| `GET` | `/api/users` | ✅ Session Required | Fetches session-protected current user details |
 
-The backend will run on:
+---
 
-http://localhost:3000
+## ⚠️ Important Notes & Code Improvements
 
-Backend API
+### 1. Simultaneous Function Triggering on Submit Button
+In the React implementation, the submit button triggers `getUsers()` via `onClick` simultaneously with `handleLogin` via `onSubmit`:
+```jsx
+<button
+  type="submit"
+  disabled={loading}
+  onClick={() => { getUsers() }}
+>
+  {loading ? "Logging in..." : "Login"}
+</button>
+```
+* **Issue:** Clicking the submit button triggers both functions at once. Since session creation on the server takes time, `getUsers()` executes before the login completes, resulting in a `401 Authentication required` error.
+* **Solution:** Remove `onClick` from the button and call `getUsers()` inside `handleLogin` right after login succeeds:
 
-Register
+```javascript
+try {
+  const response = await axios.post(`${API}/users/login`, payload, { withCredentials: true });
+  console.log('Login success: ', response.data);
+  alert("Login successful!");
 
-POST /users/register
+  // Fetch protected user data after successful authentication
+  await getUsers();
 
-Request:
-
-{
-  "email": "test1@gmail.com",
-  "password": "test1"
+  setEmail("");
+  setPassword("");
+} catch (err) {
+  console.error("Login error:", err);
 }
+```
 
-Response:
+---
 
-{
-  "message": "Register successful",
-  "id": 1,
-  "email": "test1@gmail.com"
-}
-
-Login
-
-POST /users/login
-
-Request:
-
-{
-  "email": "test1@gmail.com",
-  "password": "test1"
-}
-
-Response:
-
-{
-  "message": "Login successful",
-  "user": {
-    "id": 1,
-    "email": "test1@gmail.com"
-  }
-}
-
-After successful login, the server creates a session:
-
-req.session.userId = user.id;
-req.session.user = user;
-
-Get Authenticated User
-
-GET /api/users
-
-This endpoint requires an active session.
-
-If the user is not authenticated:
-
-{
-  "message": "Authentication required"
-}
-
-Frontend Setup
-
-Go to the frontend folder:
-
-cd frontend
-
-Install dependencies:
-
-npm install
-
-Install Axios:
-
-npm install axios
-
-Start the development server:
-
-npm run dev
-
-The frontend will normally run on:
-
-http://localhost:5173
-
-Axios Authentication
-
-Because the frontend and backend run on different ports, Axios must send credentials with requests.
-
-Login:
-
-const response = await axios.post(
-  "http://localhost:3000/users/login",
-  {
-    email,
-    password
-  },
-  {
-    withCredentials: true
-  }
-);
-
-Access protected API:
-
-const response = await axios.get(
-  "http://localhost:3000/api/users",
-  {
-    withCredentials: true
-  }
-);
-
-CORS Configuration
-
-The backend allows requests from the React frontend:
-
-app.use(cors({
-    origin: "http://localhost:5173",
-    credentials: true
-}));
-
-credentials: true is required so the browser can send the session cookie.
-
-Session Configuration
-
-The backend uses express-session:
-
-app.use(
-    session({
-        secret: "keyboard cat",
-        resave: false,
-        saveUninitialized: false,
-        cookie: {
-            httpOnly: true,
-            secure: false,
-            maxAge: 60 * 60 * 1000
-        }
-    })
-);
-
-The browser stores the session ID in a cookie.
-
-The user data itself is stored in the server-side session:
-
-req.session.userId = user.id;
-req.session.user = user;
-
-The frontend does not need to store a JWT in localStorage.
-
-Environment
-
-For local development, the MySQL connection is configured as:
-
-const connection = mysql.createConnection({
-    host: "localhost",
-    user: "root",
-    password: "",
-    database: "Authentication_learn"
+### 2. Security Vulnerability in `SELECT *`
+The public `/users` GET endpoint currently returns hashed passwords directly:
+```javascript
+app.get('/users', (req, res) => {
+    connection.query('SELECT * FROM Authentication_learn', ...)
 });
-
-Update these values according to your local MySQL configuration.
-
-Important Notes
-
-Password Security
-
-Passwords should never be stored as plain text.
-
-This project uses bcrypt:
-
-const hashedPassword = await bcrypt.hash(password, 10);
-
-During login:
-
-const isMatch = await bcrypt.compare(
-    password,
-    user.password
-);
-
-Session Authentication
-
-This project uses session-based authentication instead of storing JWT tokens in localStorage.
-
-Login
-  ↓
-Create Session
-  ↓
-Session ID Cookie
-  ↓
-Browser sends Cookie
-  ↓
-Backend checks req.session
-  ↓
-Protected API
-
-Development Session Store
-
-express-session uses an in-memory session store by default.
-
-This is suitable for learning and local development, but a production application should use a persistent session store such as Redis or a database-backed session store.
-
-Future Improvements
-
-* Add logout endpoint
-* Add authentication middleware
-* Add user roles and permissions
-* Add form validation
-* Add better error handling
-* Use environment variables for secrets and database credentials
-* Use a production session store such as Redis
-* Hide sensitive database fields from API responses
-* Add frontend protected routes
-* Add loading and error states
-* Deploy frontend and backend
-
-Learning Goals
-
-This project was created to practice:
-
-* React API integration
-* Axios
-* Express.js
-* REST API
-* MySQL CRUD
-* Password hashing
-* Authentication
-* Session management
-* Cookies
-* CORS
-* Frontend ↔ Backend communication
-
-Author
-
-Souphakone Keopheth
-
-Computer Science — Bangkok University
-
-First Class Honors
+```
+* **Recommendation:** Exclude password hashes from the SQL query response:
+  ```sql
+  SELECT id, email, created_at FROM Authentication_learn
+  ```

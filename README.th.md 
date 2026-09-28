@@ -1,375 +1,148 @@
-Authentication System
+# Full-Stack Authentication System (React + Express + MySQL)
 
-โปรเจกต์ระบบ Authentication แบบ Full Stack สำหรับฝึกการทำระบบสมัครสมาชิก เข้าสู่ระบบ และการจัดการ Session ระหว่าง Frontend และ Backend
+คู่มือการใช้งานและการทำงานของระบบ Login / Authentication โดยใช้ **React (Vite)** ในฝั่ง Frontend และ **Node.js (Express) + MySQL** ในฝั่ง Backend พร้อมระบบ **Session Management (`express-session`)** และการเข้ารหัสรหัสผ่านด้วย **Bcrypt**
 
-โปรเจกต์นี้ประกอบด้วย React.js สำหรับ Frontend, Express.js + Node.js สำหรับ Backend และ MySQL สำหรับจัดเก็บข้อมูลผู้ใช้งาน
+---
 
-Tech Stack
+## 📌 คุณสมบัติของระบบ (Features)
 
-Frontend
+* **Authentication**: เข้าสู่ระบบด้วย Email และ Password พร้อมการ Hash รหัสผ่านด้วย `bcrypt`
+* **Session Management**: ใช้ Cookie และ Session ในการเก็บสถานะการเข้าสู่ระบบ (`withCredentials: true`)
+* **Protected Routes/APIs**: API `/api/users` มีระบบตรวจสอบ Session ก่อนให้เข้าถึงข้อมูล
+* **CORS Configured**: ตั้งค่า CORS รองรับการรับ-ส่ง Cookies ระหว่าง Frontend (Port `5173`) และ Backend (Port `3000`)
 
-* React.js
-* Axios
-* Vite
-* JavaScript
-* CSS
+---
 
-Backend
+## 🛠️ Tech Stack
 
-* Node.js
-* Express.js
-* MySQL
-* bcrypt
-* express-session
-* CORS
+### Frontend
+* **React.js** (Functional Components + Hooks)
+* **Axios**: สำหรับส่ง HTTP Requests
+* **Tailwind CSS**: สำหรับจัดตกแต่ง UI
 
-โครงสร้างโปรเจกต์
+### Backend
+* **Node.js & Express.js**
+* **MySQL**: ฐานข้อมูลเชิงสัมพันธ์
+* **express-session**: จัดการ Session และ HTTP-only Cookies
+* **bcrypt**: เข้ารหัส/ตรวจสอบรหัสผ่าน
+* **cors**: จัดการการเชื่อมต่อข้าม Origin
 
-Authentication/
-├── frontend/
-│   ├── src/
-│   │   ├── components/
-│   │   ├── App.jsx
-│   │   └── main.jsx
-│   ├── package.json
-│   └── ...
-│
-└── backend/
-    ├── index.js
-    ├── package.json
-    └── ...
+---
 
-Features
+## 🗄️ โครงสร้างฐานข้อมูล (Database Structure)
 
-* สมัครสมาชิก
-* เข้าสู่ระบบ
-* Hash Password ด้วย bcrypt
-* Session-based Authentication
-* Protected API
-* เชื่อมต่อ MySQL
-* เชื่อมต่อ Frontend และ Backend ด้วย Axios
-* จัดการ CORS และ Cookie
+สร้าง Database ชื่อ `Authentication_learn` และตาราง `Authentication_learn` ใน MySQL:
 
-Authentication Flow
-
-React Frontend
-      │
-      │ POST /users/login
-      ▼
-Express Backend
-      │
-      │ ตรวจสอบ Email
-      │ ตรวจสอบ Password ด้วย bcrypt
-      ▼
-MySQL Database
-      │
-      │ Login สำเร็จ
-      ▼
-Express Session
-      │
-      │ สร้าง Session
-      ▼
-React Frontend
-      │
-      │ GET /api/users
-      │ withCredentials: true
-      ▼
-Protected API
-
-Database
-
-สร้าง Database ใน MySQL:
-
-CREATE DATABASE Authentication_learn;
-
-เลือก Database:
+```sql
+CREATE DATABASE IF NOT EXISTS Authentication_learn;
 
 USE Authentication_learn;
 
-สร้าง Table:
-
-CREATE TABLE Authentication_learn (
+CREATE TABLE IF NOT EXISTS Authentication_learn (
     id INT AUTO_INCREMENT PRIMARY KEY,
     email VARCHAR(255) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL
+    password VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+```
 
-Password จะถูกเก็บในรูปแบบ bcrypt hash ไม่ได้เก็บเป็น Plain Text
+---
 
-การติดตั้ง Backend
+## 🚀 การติดตั้งและเรียกใช้งาน (Setup & Installation)
 
-เข้าไปที่โฟลเดอร์ Backend:
+### 1. Backend Setup (Express)
 
-cd backend
+1. สร้างโฟลเดอร์สำหรับ Backend และติดตั้ง Dependencies:
+   ```bash
+   npm init -y
+   npm install express mysql bcrypt cors express-session
+   ```
+2. ตรวจสอบการตั้งค่าฐานข้อมูลในไฟล์ Express (`server.js` หรือ `app.js`):
+   ```javascript
+   const connection = mysql.createConnection({
+       host: 'localhost',
+       user: 'root',      // ปรับตาม User MySQL ของคุณ
+       password: '',      // ใส่ Password MySQL ของคุณ
+       database: 'Authentication_learn',
+   });
+   ```
+3. รัน Server:
+   ```bash
+   node app.js
+   ```
+   *(Server จะทำงานที่ `http://localhost:3000`)*
 
-ติดตั้ง Dependencies:
+---
 
-npm install
+### 2. Frontend Setup (React)
 
-หรือ:
+1. ติดตั้ง Dependencies ในโปรเจกต์ React:
+   ```bash
+   npm install axios
+   ```
+2. ตรวจสอบว่ามี **Tailwind CSS** ติดตั้งอยู่แล้วในโปรเจกต์
+3. รัน Development Server:
+   ```bash
+   npm run dev
+   ```
+   *(Frontend จะทำงานที่ `http://localhost:5173`)*
 
-npm install express mysql bcrypt cors express-session
+---
 
-รัน Backend:
+## 📡 API Endpoints Summary
 
-node index.js
+| Method | Endpoint | Protection | Description |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/` | ❌ No | ตรวจสอบสถานะ Server (`Hello World!`) |
+| `GET` | `/users` | ❌ No | ดึงข้อมูลผู้ใช้ทั้งหมดจากฐานข้อมูล |
+| `POST` | `/users/register` | ❌ No | สมัครสมาชิกใหม่ (Hash รหัสผ่านก่อนบันทึก) |
+| `POST` | `/users/login` | ❌ No | เข้าสู่ระบบ และสร้าง Session Cookie |
+| `GET` | `/api/users` | ✅ Session Required | ดึงข้อมูลผู้ใช้เฉพาะคนที่ล็อกอินอยู่ (ต้องส่ง Cookie ไปด้วย) |
 
-Backend จะทำงานที่:
+---
 
-http://localhost:3000
+## ⚠️ จุดที่ต้องระวังและการปรับปรุงโค้ด (Important Notes & Suggestions)
 
-Backend API
+### 1. การทำงานของปุ่ม Submit ใน React
+ในโค้ดฝั่ง React ปุ่ม Submit มีการใส่ `onClick={() => { getUsers() }}` ร่วมกับ `type="submit"` ของฟอร์ม:
+```jsx
+<button
+  type="submit"
+  disabled={loading}
+  onClick={() => { getUsers() }}
+>
+  {loading ? "Logging in..." : "Login"}
+</button>
+```
+* **ข้อสังเกต:** การกดปุ่มจะทำให้ทั้ง `handleLogin` (จาก `onSubmit` ของ `<form>`) และ `getUsers()` ทำงานพร้อมกัน ซึ่งในจังหวะที่กดปุ่มนั้น **Session บน Server อาจยังสร้างไม่เสร็จ** ทำให้ `getUsers()` ติด Error `401 Authentication required` ได้
+* **แนวทางแก้ไข:** ควรีย้าย `getUsers()` ไปเรียกภายใน `handleLogin` หลังจากที่ส่ง Request ล็อกอินสำเร็จแล้ว:
 
-Register
+```javascript
+try {
+  const response = await axios.post(`${API}/users/login`, payload, { withCredentials: true });
+  console.log('Login success: ', response.data);
+  alert("Login successful!");
 
-สมัครสมาชิกด้วย:
+  // ดึงข้อมูลผู้ใช้หลังจากล็อกอินสำเร็จ
+  await getUsers();
 
-POST /users/register
-
-Request:
-
-{
-  "email": "test1@gmail.com",
-  "password": "test1"
+  setEmail("");
+  setPassword("");
+} catch (err) {
+  console.error("Login error:", err);
 }
+```
 
-Response:
+---
 
-{
-  "message": "Register successful",
-  "id": 1,
-  "email": "test1@gmail.com"
-}
-
-เมื่อสมัครสมาชิก Password จะถูก Hash ด้วย bcrypt ก่อนบันทึกลง Database
-
-⸻
-
-Login
-
-เข้าสู่ระบบด้วย:
-
-POST /users/login
-
-Request:
-
-{
-  "email": "test1@gmail.com",
-  "password": "test1"
-}
-
-Response:
-
-{
-  "message": "Login successful",
-  "user": {
-    "id": 1,
-    "email": "test1@gmail.com"
-  }
-}
-
-เมื่อ Login สำเร็จ Backend จะสร้าง Session:
-
-req.session.userId = user.id;
-req.session.user = user;
-
-⸻
-
-Get Authenticated User
-
-เรียกข้อมูล User ที่ Login อยู่:
-
-GET /api/users
-
-Endpoint นี้ต้องมี Session ที่ถูกต้อง
-
-ถ้ายังไม่ได้ Login:
-
-{
-  "message": "Authentication required"
-}
-
-การติดตั้ง Frontend
-
-เข้าไปที่โฟลเดอร์ Frontend:
-
-cd frontend
-
-ติดตั้ง Dependencies:
-
-npm install
-
-ติดตั้ง Axios:
-
-npm install axios
-
-รัน Frontend:
-
-npm run dev
-
-Frontend จะทำงานที่:
-
-http://localhost:5173
-
-การเรียก API ด้วย Axios
-
-เนื่องจาก Frontend และ Backend ทำงานคนละ Port จึงต้องใช้ withCredentials: true เพื่อส่ง Session Cookie ไปกับ Request
-
-Login
-
-const response = await axios.post(
-  "http://localhost:3000/users/login",
-  {
-    email,
-    password
-  },
-  {
-    withCredentials: true
-  }
-);
-
-เรียก Protected API
-
-const response = await axios.get(
-  "http://localhost:3000/api/users",
-  {
-    withCredentials: true
-  }
-);
-
-CORS
-
-Backend ต้องอนุญาตให้ Frontend ส่ง Cookie มาด้วย:
-
-app.use(cors({
-    origin: "http://localhost:5173",
-    credentials: true
-}));
-
-โดย credentials: true มีไว้เพื่อให้ Browser สามารถส่ง Session Cookie ระหว่าง Frontend และ Backend ได้
-
-Session Authentication
-
-โปรเจกต์นี้ใช้ express-session สำหรับจัดการ Authentication:
-
-app.use(
-    session({
-        secret: "keyboard cat",
-        resave: false,
-        saveUninitialized: false,
-        cookie: {
-            httpOnly: true,
-            secure: false,
-            maxAge: 60 * 60 * 1000
-        }
-    })
-);
-
-เมื่อ Login สำเร็จ:
-
-req.session.userId = user.id;
-req.session.user = user;
-
-Browser จะได้รับ Session ID ผ่าน Cookie
-
-จากนั้นเมื่อเรียก Protected API:
-
-Browser
-   │
-   │ Session Cookie
-   ▼
-Backend
-   │
-   │ ตรวจสอบ req.session
-   ▼
-Authentication
-   │
-   ▼
-Protected API
-
-ดังนั้นโปรเจกต์นี้ ไม่จำเป็นต้องเก็บ JWT ใน localStorage
-
-Password Hashing
-
-Password ไม่ควรเก็บลง Database เป็น Plain Text
-
-โปรเจกต์นี้ใช้ bcrypt ในการ Hash Password:
-
-const hashedPassword = await bcrypt.hash(password, 10);
-
-ตอน Login จะตรวจสอบ Password ด้วย:
-
-const isMatch = await bcrypt.compare(
-    password,
-    user.password
-);
-
-ถ้า Password ถูกต้อง:
-
-Login Successful
-
-ถ้า Password ไม่ถูกต้อง:
-
-Login Failed
-
-MySQL Configuration
-
-ตัวอย่างการตั้งค่า MySQL:
-
-const connection = mysql.createConnection({
-    host: "localhost",
-    user: "root",
-    password: "",
-    database: "Authentication_learn"
+### 2. ความปลอดภัยข้อมูลในการคิวรี (`SELECT *`)
+ในส่วนของ Route `/users` มีการส่งข้อมูล `password` ที่ถูก Hash ออกไปตรงๆ:
+```javascript
+app.get('/users', (req, res) => {
+    connection.query('SELECT * FROM Authentication_learn', ...)
 });
-
-สามารถแก้ไขค่าเหล่านี้ให้ตรงกับ MySQL ในเครื่องของคุณได้
-
-Session Store
-
-ในโปรเจกต์นี้ express-session ใช้ MemoryStore ซึ่งเหมาะสำหรับการเรียนรู้และการพัฒนาในเครื่อง
-
-สำหรับ Production ควรใช้ Session Store ที่สามารถเก็บข้อมูลได้อย่างถาวร เช่น:
-
-* Redis
-* Database Session Store
-
-สิ่งที่ได้เรียนรู้จากโปรเจกต์นี้
-
-โปรเจกต์นี้ใช้สำหรับฝึก:
-
-* React.js
-* Axios
-* Express.js
-* REST API
-* MySQL
-* CRUD
-* Password Hashing
-* bcrypt
-* Authentication
-* Session
-* Cookie
-* CORS
-* Frontend ↔ Backend Communication
-
-สิ่งที่สามารถพัฒนาต่อได้
-
-* เพิ่ม Logout
-* สร้าง Authentication Middleware
-* เพิ่ม Role / Permission
-* เพิ่ม Form Validation
-* เพิ่ม Protected Route ใน React
-* เพิ่ม Loading และ Error State
-* ใช้ Environment Variables
-* ใช้ Redis สำหรับ Session Store
-* เพิ่มระบบ Refresh / Session Expiration
-* เพิ่มระบบจัดการ User
-* Deploy Frontend และ Backend
-
-Author
-
-Souphakone Keopheth
-
-Computer Science — Bangkok University
-
-First Class Honors
+```
+* **ข้อแนะนำ:** ควรละเว้นการดึง ฟิลด์ `password` ออกมาเพื่อความปลอดภัย:
+  ```sql
+  SELECT id, email, created_at FROM Authentication_learn
+  ```
