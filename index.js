@@ -57,19 +57,15 @@ app.get('/users', (req, res) => {
                     error: err.message
                 });
             }
-
             res.json(results);
         }
     );
 });
 
-
 // REGISTER
 app.post('/users/register', async (req, res) => {
     const { email, password } = req.body;
-
     const hashedPassword = await bcrypt.hash(password, 10);
-
     connection.query(
         'INSERT INTO Authentication_learn (email, password) VALUES (?, ?)',
         [email, hashedPassword],
@@ -89,6 +85,23 @@ app.post('/users/register', async (req, res) => {
     );
 });
 
+app.post("/register", async (req, res) => {
+    const { email, password } = req.body
+    const hashPassword = await bcrypt.hash(password, 10)
+    connection.query('INSERT INTO Authentication_learn (email, password) VALUES (?, ?)', [email, hashPassword],
+        (err, result) => {
+            if (err) {
+                return res.status(500).json({
+                    err: err.message
+                })
+            }
+            res.json({
+                message: "registed",
+                result
+            })
+        }
+    )
+})
 
 // LOGIN
 app.post('/users/login', async (req, res) => {
@@ -136,7 +149,8 @@ app.post('/users/login', async (req, res) => {
                 message: 'Login successful',
                 user: {
                     id: user.id,
-                    email: user.email
+                    email: user.email,
+                    session: req.session
                 }
             });
         }
@@ -191,6 +205,19 @@ app.get('/api/users', async (req, res) => {
 
     }
 });
+
+app.post("/logout", (req, res) => {
+    req.session.destroy((err) => {
+        if (err) {
+            return res.status(500).json({
+                message: "Logout failed"
+            })
+        }
+        res.json({
+            message: "Logout success"
+        })
+    })
+})
 
 
 app.listen(port, () => {
